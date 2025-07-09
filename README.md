@@ -5,7 +5,7 @@ database MySQL.
 [Fitur](##Fitur)
 [Instalasi](##Instalasi)
 [Cara Kerja Aplikasi](#cara-kerja-aplikasi)
-[Changers](#changes)
+[Changes](#changes)
 
 ## Fitur
 - Menghitung Occupancy Rate perbulan
