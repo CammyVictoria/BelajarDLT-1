@@ -1,0 +1,19 @@
+Step 1 - Install library
+- pandas
+- datetime
+- MonthEnd
+
+Step 2 - load data dari csv menggunakan pandas
+
+Step 3 - pastikan kolom start_date dan end_date sudah menjadi bentuk datetime
+
+Step 4 - pisahkan pemesanan yang bersifat overlapping pada setiap bulan (kalau ada 1 row pemesanan dengan
+start_date 20 Juni dan end_date 10 Juli, maka dipisah menjadi 2 rows:
+rows 1: start_date = 20 Juni, end_date = 30 Juni
+rows 2: start_date = 1 Juli, end_date= 10 Juli)
+
+Step 5 - hitung perbedaan start_date dan end_date untuk mengetahui berapa hari hotel dibooking
+
+Step 6 - hitung jumlah total unit apartment dibooking setiap bulannya dan bagi dengan 30 (jumlah hari perbulan)
+
+Step 7 - hitung occupancy rate dengan mencari mean dari kolom occupancy_rate untuk setiap apartment di bulan tertentu.
