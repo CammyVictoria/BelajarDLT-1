@@ -146,6 +146,85 @@ for _, r in final_occupancy_rate.iterrows():
         r['apartment_id'], str(int(r['month'])), r['occupancy_rate']
     ))
 ```
+## Edge Case
+### Terjadi pembaruan data
+#### Metode 1 - scd2 (Slowly Changing Dimensions Type 2)
+Pada metode ini, data historikal akan ditambahkan sebagai rows baru dan tidak dihapus.
+
+Untuk menggunakan metode ini, pada setiap tabel ditambahkan kolom baru, yaitu surrogate_key, effective_start_date, effective_end_date, dan active_flag
+
+- surrogate_key = Memberikan id untuk setiap versi data
+- effective_start_date = Tanggal efektif data tersebut mulai berlaku
+- effective_end_date = Tanggal data tersebut terakhir kali berlaku
+- active_flag = Status berlakunya data tersebut (bisa Y/N atau 1/0)
+
+Contoh:
+Terdapat tabel employee yang mencakup data sebagai berikut:
+```
+|surrogate_key|emp_id|emp_name|emp_address|effective_start_date|effective_end_date|active_flag|
+|S0001        |E0001 |Agus    |Indonesia  |07/08/2025          |12/31/9999        |Y          |
+```
+Lalu employee tersebut ingin mengganti alamatnya, maka data dengan surrogate_key S0001 tidak akan dihapus, hanya saja effective_end_date dan active_flagnya berubah menjadi seperti berikut:
+
+```
+|surrogate_key|emp_id|emp_name|emp_address|effective_start_date|effective_end_date|active_flag|
+|S0001        |E0001 |Agus    |Indonesia  |07/08/2025          |07/10/2025        |N          |
+|S0002        |E0001 |Agus    |USA        |07/10/2025          |12/31/9999        |Y          |
+```
+
+#### Metode 2 - Compare Table
+Membandingkan data di table staging dan di dalam table database yang telah disimpan untuk mengetahui apakah terjadi perubahan data. Di MySQL, bisa dijalankan query sebagai berikut.
+
+```SQL
+(SELECT column_1, column_2, 'staging' AS source
+FROM staging_table
+EXCEPT                                                  --Menemukan data yang ditambahkan
+SELECT column_1, column_2, 'staging' AS source
+FROM old_table)
+UNION ALL
+(SELECT column_1, column_2, 'old' AS source
+FROM old_table
+EXCEPT                                                  --Menemukan data yang dikurangi
+SELECT column_1, column_2, 'old' AS source
+FROM staging_table)
+```
+
+### Terjadi Penambahan/Pengurangan/Perubahan Kolom
+Apabila perubahan terjadi pada struktur tabel, bisa diatasi juga menggunakan konsep metode berikut:
+[Compare Table](#metode-2---compare-table)
+
+#### Case 1 - Penambahan kolom
+```SQL
+SELECT column_name
+FROM information_schema.columns
+WHERE table_name = 'old_table'
+EXCEPT
+SELECT column_name
+FROM information_schema.columns
+WHERE table_name = 'staging_table'
+```
+
+#### Case 2 - Pengurangan kolom
+```SQL
+SELECT column_name
+FROM information_schema.columns
+WHERE table_name = 'staging_table'
+EXCEPT
+SELECT column_name
+FROM information_schema.columns
+WHERE table_name = 'old_table'
+```
+
+#### Case 3 - Pergantian nama kolom
+Membandingkan data yang tersimpan di dalam kolom database untuk memastikan bahwa benar kolom tersebut merupakan kolom yang diganti namanya. Contoh: Kolom user_name berubah nama menjadi name, maka bisa dicek melalui query berikut
+```SQL
+SELECT COUNT(*) as diff_count
+FROM old_table o
+JOIN staging_table s
+ON o.user_id = s.user_id
+WHERE o.user_name != s.name
+```
+Apabila jumlah diff_count 0 atau mendekati 0, kemungkinan besar sudah benar bahwa kolom tersebut merupakan kolom yang namanya diganti.
 
 ## Changes
 ### Version 1
@@ -159,3 +238,6 @@ ke dalam tabel
 ### Version 2
 1. memisahkan proses untuk melakukan transfer raw data ke dalam MySQL (Pencatatan_booking.py) dan proses untuk menganalisa hasil occupancy rate (Analisa_occupancy_rate.py)
 2. menghapus file booking.py dan database.py karena prosesnya sudah disimpan pada Pencatatan_booking.py dan Analisa_occupancy_rate.py
+
+### Version 3
+1. Penambahan file query.sql, sebuah file sql yang ketika dijalankan akan menghitung langsung occupancy_rate tanpa harus melalui logika python.
