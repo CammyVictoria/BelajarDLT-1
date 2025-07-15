@@ -141,7 +141,7 @@ Memasukkan data hasil analisis ke dalam database MySQL
 insert_final_occupancy = "INSERT INTO occupancy_apartment(apartment_id,month,occupancy_rate) VALUES(%s,%s,%s);"
 
 for _, r in final_occupancy_rate.iterrows():
-    
+
     cursor.execute(insert_final_occupancy, (
         r['apartment_id'], str(int(r['month'])), r['occupancy_rate']
     ))
@@ -388,4 +388,65 @@ df = pipeline.dataset().nama_tabel.df()
 Inisialisasi menggunakan:
 ```bash
 dlt init <verified-source> <destination>
+```
+# Linux File Permission
+
+## 1. Cara Mengecek Permission File
+
+Gunakan perintah berikut di terminal:
+```bash
+ls -l
+```
+## 2. Struktur
+```
+rwxrw-r–
+```
+
+3 huruf pertama: permission buat user (yang buat file)
+3 huruf tengah: permission buat grup
+3 huruf terakhir: permission buat other member
+
+r = baca
+w = nulis/ubah
+x = menjalankan
+
+## 3. Cara mengubah akses
+### Cara pertama
+```
+chmod [kode] [nama-file]
+```
+### Cara Kedua
+```
+chmod [user][+/-/=][tipe akses]
+```
+# Cron
+## Cara memanggil
+crontab -e
+
+## Cara menyetel
+strukturnya akan seperti ini
+
+```
+minute hour day month weekday <command-to-execute>
+```
+
+### Contoh
+1. jalan setiap hari, setiap bulan, setiap jam 5
+```
+15 * * * * command
+```
+
+2. jalan setiap jam 5.30pm di hari jumat
+```
+30 17 * * 5 command
+```
+
+3. jalan setiap waktu kerja(jam 9-5, senin-jumat)
+```
+0 9-17 * * 1-5 command
+```
+
+4. jalan setiap interval 2 jam
+```
+0 */2 * * * command
 ```
