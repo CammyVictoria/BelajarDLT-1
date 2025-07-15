@@ -19,4 +19,4 @@ def run_duckdb_script(sql_file_path, db_path):
         conn.close()
 
 if __name__ == "__main__":
-    run_duckdb_script("BelajarDLT/query.sql", "data_pipeline.duckdb")tets
+    run_duckdb_script("BelajarDLT/query.sql", "data_pipeline.duckdb")
